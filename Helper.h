@@ -302,36 +302,51 @@ public:
 	bool findByBinary(Comparator &comp, O &bibb, std::_Vector_iterator<std::_Vector_val<std::_Simple_types<O>>> &it)
 	{
 		std::sort(vect.begin(), vect.end(), comp);
-		it = std::lower_bound(vect.begin(), vect.end(), bibb, comp);
-		if (it == vect.end())
+		std::_Vector_iterator<std::_Vector_val<std::_Simple_types<O>>> tmpIt;
+		tmpIt = std::lower_bound(vect.begin(), vect.end(), bibb, comp);
+		if (tmpIt == vect.end())
 			return false;
+		it = tmpIt;
 		return true;
 	}
 	
 	template<class Accomulator>
-	void findSubSetBy(Accomulator acc)
+	std::vector<O> findSubSetBy(Accomulator acc)
 	{
 		std::for_each(vect.begin(), vect.end(), acc);
-		subv = acc.getSet();
+		return acc.getSet();
 	}
 	
 
-	int subSize()
+	int size()
 	{
-		return subv.size();
+		return vect.size();
+	}
+
+	void clear()
+	{
+		vect.clear();
 	}
 
 protected:
 	std::vector<O> vect;
-	std::vector<O> subv;
 };
 
 
 
-template <class O = Order>
+void inputOrderChange(std::vector<Order>::iterator &it);
 class —ontainer : public Abs—ontainer<Order>
 {
 public:
+	—ontainer(std::vector<Order> v)
+	{
+		vect = v;
+	}
+	
+	—ontainer()
+	{
+		vect = std::vector<Order>();
+	}
 
 	void remove(std::vector<Order>::iterator it) {
 		vect.erase(it);
@@ -366,7 +381,7 @@ public:
 	bool findByNameBinary(std::string name, std::vector<Order>::iterator &it)
 	{
 		NameComp comp = NameComp();
-		O bibb = Order( name, "", "", 0, Date(), 0);
+		Order bibb = Order( name, "", "", 0, Date(), 0);
 
 		return findByBinary(comp, bibb, it) && it->name == name;
 	}
@@ -375,7 +390,7 @@ public:
 	bool findByTypeBinary(std::string type, std::vector<Order>::iterator &it)
 	{
 		TypeComp comp = TypeComp();
-		O bibb = Order("", type, "", 0, Date(), 0);
+		Order bibb = Order("", type, "", 0, Date(), 0);
 
 		return findByBinary(comp, bibb, it) && it->type == type;
 	}
@@ -383,36 +398,33 @@ public:
 	bool findByDateBinary(Date date, std::vector<Order>::iterator &it)
 	{
 		DateComp comp = DateComp();
-		O bibb = Order("", "", "", 0, date, 0);
+		Order bibb = Order("", "", "", 0, date, 0);
 
 		return findByBinary(comp, bibb, it) && it->time == date;
 	}
 
 
-	void findSubSetByName(std::string s)
+	—ontainer findSubSetByName(std::string s)
 	{
 		NameAcc acc = NameAcc(s);
-
-		findSubSetBy(acc);
+		return —ontainer(findSubSetBy(acc));
 	}
 
-	void findSubSetByType(std::string s)
+	—ontainer findSubSetByType(std::string s)
 	{
 		TypeAcc acc = TypeAcc(s);
-
-		findSubSetBy(acc);
+		return —ontainer(findSubSetBy(acc));
 	}
 
-	void findSubSetByDate(Date d)
+	—ontainer findSubSetByDate(Date d)
 	{
 		DateAcc acc = DateAcc(d);
-
-		findSubSetBy(acc);
+		return —ontainer(findSubSetBy(acc));
 	}
 
 
 
-	void consoleInput() {
+	/*void consoleInput() {
 		vect.clear();
 		O ord;
 		while (true) {
@@ -445,29 +457,28 @@ public:
 		printHead();
 		copy(subv.begin(), subv.end(), std::ostream_iterator<O>(std::cout, "\n"));
 	}
+*/
+	void fileInput(std::fstream& fin) {
 
-	void fileInput(std::string fn) {
-		std::fstream fin(fn, std::ios::in);
 		if (fin.is_open()) {
-			std::istream_iterator<O> is(fin);
+			std::istream_iterator<Order> is(fin);
 			vect.clear();
-			O ord = *is++;
+			Order ord = *is++;
 			while (!fin.fail() && !fin.eof()) {
 				add(ord);
 				ord = *is++;
 			}
-			//if (!fin.fail() && !fin.eof())
-				add(ord);
+			/*	add(ord);*/
+			if (!fin.fail() && !fin.eof()) add(ord);
 			fin.close();
 		}
 		else
 			std::cout << "‘‡ÈÎ ÌÂ ÒÛ˘ÂÒÚ‚ÛÂÚ!" << std::endl;		
 	}
 
-	void fileOutput(std::string fn) {
-		std::fstream fout(fn, std::ios::out);
+	void fileOutput(std::fstream& fout) {
 		if (fout.is_open()) {
-			copy(vect.begin(), vect.end(), std::ostream_iterator<O>(fout, "\n"));
+			copy(vect.begin(), vect.end(), std::ostream_iterator<Order>(fout, "\n"));
 			fout.close();
 		}
 		else
@@ -475,23 +486,71 @@ public:
 	}
 
 
-	void fileOutputSub(std::string fn)
+	/*void fileOutputSub(std::fstream& fout)
 	{
-		std::fstream fout(fn, std::ios::out);
 		if (fout.is_open())
 		{
-			copy(subv.begin(), subv.end(), std::ostream_iterator<O>(fout, "\n"));
+			copy(subv.begin(), subv.end(), std::ostream_iterator<Order>(fout, "\n"));
 			fout.close();
 		}
 		else
 		{
 			std::cout << "Œ¯Ë·Í‡ ÓÚÍ˚ÚËˇ Ù‡ÈÎ‡!";
 		}
-	}
+	}*/
+
+	void output(std::ostream_iterator<Order> os)
+		 {
+		copy(vect.begin(), vect.end(), os);
+		}
 };
 
 
 //-----------------helpers------------------
+
+static void printHead();
+
+void consoleInput(—ontainer& cont) {
+	cont.clear();
+	Order ord;
+	while (true) {
+		try {
+			ord = inputOrder();
+			
+		}
+		catch (const char* str) {
+			return;
+			
+		}
+		
+			cont.add(ord);
+		
+	}
+	
+}
+
+void consoleOutput(—ontainer& cont)
+ {
+	if (cont.size() != 0)
+		 {
+		printHead();
+		cont.output(std::ostream_iterator<Order>(std::cout, "\n"));
+		}
+	else
+		 {
+		std::cout << "EMPTY\n";
+		}
+	}
+
+//void consoleOutputSub(—ontainer& cont)
+// {
+//	printHead();
+//	copy(cont.subv.begin(), cont.subv.end(), );
+//	}
+
+
+
+
 int inputInt(std::string message = "", int min = 0, int max = 10000) {
 	std::string str;
 	int res;
@@ -568,7 +627,7 @@ Order inputOrder()
 }
 
 
-Order inputOrderAdd(—ontainer<Order> &c)
+Order inputOrderAdd(—ontainer &c)
 {
 	std::string name;
 	std::string type;

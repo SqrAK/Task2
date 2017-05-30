@@ -108,7 +108,8 @@ int main()
 {
 	setlocale(LC_ALL, "rus");
 	bool notEnd = true;
-	Ñontainer<> cont = Ñontainer<>();
+	Ñontainer cont = Ñontainer();
+	Ñontainer sub;
 	std::string filename;
 	std::vector<Order>::iterator it;
 	bool fl;
@@ -125,18 +126,18 @@ int main()
 		{
 		case 1:
 			filename = inputFileName();
-			cont.fileInput(filename);
+			cont.fileInput(std::fstream(filename, std::ios::in));
 			break;
 		case 2:
-			cont.consoleInput();
+			consoleInput(cont);
 			break;
 		case 3:
 			std::cout << "Ââåäèòå èìÿ ôàéëà:\n";
 			std::cin >> filename;
-			cont.fileOutput(filename);
+			cont.fileOutput(std::fstream(filename, std::ios::in));
 			break;
 		case 4:
-			cont.consoleOutput();
+			consoleOutput(cont);
 			break;
 		case 5:
 			fl = true;
@@ -349,22 +350,23 @@ int main()
 				case 1:
 					std::cout << "Ââåäèòå íàçâàíèå ôèðìû: ";
 					std::cin >> str;
-					cont.findSubSetByName(str);
+					//cont.findSubSetByName(str);
+					sub = cont.findSubSetByName(str);
 					fl = true;
 					while (fl)
 					{
-						printSubSetMenu(cont.subSize());
+						printSubSetMenu(sub.size());
 						std::cin >> c;
 						switch (c)
 						{
 						case 1:
-							cont.consoleOutputSub();
+							consoleOutput(sub);
 							fl = false;
 							break;
 						case 2:
 							std::cout << "Ââåäèòå èìÿ ôàéëà:\n";
 							std::cin >> filename;	
-							cont.fileOutputSub(filename);
+							cont.fileOutput(std::fstream(filename, std::ios::out));
 							fl = false;
 							break;
 						case 0:
@@ -379,23 +381,23 @@ int main()
 					break;
 				case 3:
 					std::cout << "Ââåäèòå äàòó: ";
-					cont.findSubSetByDate(inputDate());
+					sub = cont.findSubSetByDate(inputDate());
 					fl = true;
 					while (fl)
 					{
-						printSubSetMenu(cont.subSize());
+						printSubSetMenu(sub.size());
 						std::cin >> c;
 						
 						switch (c)
 						{
 						case 1:
-							cont.consoleOutputSub();
+							consoleOutput(sub);
 							fl = false;
 							break;
 						case 2:
 							std::cout << "Ââåäèòå èìÿ ôàéëà:\n";
 							std::cin >> filename;
-							cont.fileOutputSub(filename);
+							cont.fileOutput(std::fstream(filename, std::ios::out));
 							fl = false;
 							break;
 						case 0:
@@ -409,26 +411,26 @@ int main()
 					}
 					break;
 				case 2:
-					std::cout << "Enter place: ";
+					std::cout << "Ââåäèòå òèï: ";
 					std::cin >> str;
-					cont.findSubSetByType(str);
+					sub = cont.findSubSetByType(str);
 					fl = true;
 					while (fl)
 					{
 						
-						printSubSetMenu(cont.subSize());
+						printSubSetMenu(sub.size());
 						std::cin >> c;
 						
 						switch (c)
 						{
 						case 1:
-							cont.consoleOutputSub();
+							consoleOutput(sub);
 							fl = false;
 							break;
 						case 2:
 							std::cout << "Ââåäèòå èìÿ ôàéëà:\n";
 							std::cin >> filename;
-							cont.fileOutputSub(filename);
+							cont.fileOutput(std::fstream(filename, std::ios::out));
 							fl = false;
 							break;
 						case 0:
