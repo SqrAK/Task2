@@ -59,12 +59,12 @@ public:
 
 
 std::ostream& operator <<(std::ostream &os, const Order &ord) {
-	os <<	ord.name + "\t" +
-			ord.type + "\t" +
-			ord.unit + "\t" +
-			std::to_string(ord.priceForOne) + "\t";
-	os <<	ord.time;
-	os <<	"\t" +	std::to_string(ord.volume) + "\n";
+	os << ord.name + "\t"+
+		ord.type + "\t" +
+		ord.unit + "\t" +
+		std::to_string(ord.priceForOne) + "\t";
+	os << ord.time;
+	os << "\t" +  std::to_string(ord.volume) << "\n";
 	return os;
 }
 
@@ -74,9 +74,11 @@ std::istream& operator>> (std::istream& is, Order &ord)
 	is >> ord.type;
 	is >> ord.unit;
 	is >> ord.priceForOne;
-	std::string str;
-	is >> str;
-	Date::StrToDate(str, ord.time);
+	std::string str1;
+	std::string str2;
+	is >> str1;
+	is >> str2;
+	Date::StrToDate(str1 + " " + str2, ord.time);
 	is >> ord.volume;
 
 	return is;
@@ -267,14 +269,8 @@ public:
 
 	~AbsСontainer() {}
 
-	bool add(O ord) {
-		if (!find(ord))
-		{
+	void add(O ord) {
 			vect.push_back(ord);
-			return true;
-		}
-		else
-			return false;
 	}
 
 
@@ -294,8 +290,12 @@ public:
 	template<class Predicate>
 	bool findBy(Predicate &pred, std::_Vector_iterator<std::_Vector_val<std::_Simple_types<O>>> &it)
 	{
-		it = std::find_if(vect.begin(), vect.end(), pred);
-		return it != vect.end();
+		std::_Vector_iterator<std::_Vector_val<std::_Simple_types<O>>> tmpIt;
+		tmpIt = std::find_if(vect.begin(), vect.end(), pred);
+		if (tmpIt == vect.end())
+			return false;
+		it = tmpIt;
+		return true;
 	}
 	
 	template<class Comparator>
@@ -360,21 +360,18 @@ public:
 	bool findByName(std::string name, std::vector<Order>::iterator &it)
 	{
 		NamePred &pred = NamePred(name);
-
 		return findBy(pred, it);
 	}
 
 	bool findByType(std::string type, std::vector<Order>::iterator &it)
 	{
 		TypePred pred = TypePred(type);
-
 		return findBy(pred, it);
 	}
 
 	bool findByDate(Date date, std::vector<Order>::iterator &it)
 	{
 		DatePred pred = DatePred(date);
-
 		return findBy(pred, it);
 	}
 
@@ -382,7 +379,6 @@ public:
 	{
 		NameComp comp = NameComp();
 		Order bibb = Order( name, "", "", 0, Date(), 0);
-
 		return findByBinary(comp, bibb, it) && it->name == name;
 	}
 
@@ -391,7 +387,6 @@ public:
 	{
 		TypeComp comp = TypeComp();
 		Order bibb = Order("", type, "", 0, Date(), 0);
-
 		return findByBinary(comp, bibb, it) && it->type == type;
 	}
 
@@ -399,7 +394,6 @@ public:
 	{
 		DateComp comp = DateComp();
 		Order bibb = Order("", "", "", 0, date, 0);
-
 		return findByBinary(comp, bibb, it) && it->time == date;
 	}
 
@@ -423,41 +417,6 @@ public:
 	}
 
 
-
-	/*void consoleInput() {
-		vect.clear();
-		O ord;
-		while (true) {
-			try {
-				ord = inputOrder();
-			}
-			catch (const char* str) {
-				return;
-			}
-
-			add(ord);
-		}
-	}
-
-	void consoleOutput()
-	{
-		if (vect.size() != 0)
-		{
-			printHead();
-			copy(vect.begin(), vect.end(), std::ostream_iterator<O>(std::cout, "\n"));
-		}
-		else
-		{
-			std::cout << "Пусто\n";
-		}
-	}
-
-	void consoleOutputSub()
-	{
-		printHead();
-		copy(subv.begin(), subv.end(), std::ostream_iterator<O>(std::cout, "\n"));
-	}
-*/
 	void fileInput(std::fstream& fin) {
 
 		if (fin.is_open()) {
@@ -469,7 +428,8 @@ public:
 				ord = *is++;
 			}
 			/*	add(ord);*/
-			if (!fin.fail() && !fin.eof()) add(ord);
+			if (ord.name != "")
+				add(ord);
 			fin.close();
 		}
 		else
@@ -486,18 +446,6 @@ public:
 	}
 
 
-	/*void fileOutputSub(std::fstream& fout)
-	{
-		if (fout.is_open())
-		{
-			copy(subv.begin(), subv.end(), std::ostream_iterator<Order>(fout, "\n"));
-			fout.close();
-		}
-		else
-		{
-			std::cout << "Ошибка открытия файла!";
-		}
-	}*/
 
 	void output(std::ostream_iterator<Order> os)
 		 {
@@ -538,20 +486,13 @@ void consoleOutput(Сontainer& cont)
 		}
 	else
 		 {
-		std::cout << "EMPTY\n";
+		std::cout << "Пусто\n";
 		}
 	}
 
-//void consoleOutputSub(Сontainer& cont)
-// {
-//	printHead();
-//	copy(cont.subv.begin(), cont.subv.end(), );
-//	}
 
 
-
-
-int inputInt(std::string message = "", int min = 0, int max = 10000) {
+int inputInt(std::string message = "", bool isAdd = false, int min = 0, int max = 10000) {
 	std::string str;
 	int res;
 
@@ -559,7 +500,7 @@ int inputInt(std::string message = "", int min = 0, int max = 10000) {
 		std::cout << message;
 		try {
 			std::cin >> str;
-			if (str == "skip") return 0;
+			if (str == "skip" && !isAdd) return 0;
 			if (str == "exit") throw "exit";
 			res = std::stoi(str);
 			while (res < min || res > max) {
@@ -574,18 +515,21 @@ int inputInt(std::string message = "", int min = 0, int max = 10000) {
 	}
 }
 
-Date inputDate(std::string message = "Введите дату по формату: mm:hh/dd/mm/yyyy : ") {		
+Date inputDate(bool isAdd = false, std::string message = "Input date in format hh:mm dd/mm/yyyy : ") {
 	Date date = Date();
-
-	std::string buf;
+	std::string buf1;
+	std::string buf2;
 	bool ok = false;
 	while (!ok)
 	{
 		std::cout << message;
-		std::cin >> buf;
-		if (buf == "exit") throw "exit";
-		if (buf == "skip") return Date();
-		ok = Date::StrToDate(buf, date);
+		std::cin >> buf1;
+		if (buf1 == "skip" && !isAdd) return Date();
+		if (buf1 == "exit") throw "exit";
+		std::cin >> buf2;
+		if (buf1 == "exit" || buf2 == "exit") throw "exit";
+		if (buf1 == "skip" || buf2 == "skip") return Date();
+		ok = Date::StrToDate(buf1 + " " + buf2, date);
 		if (!ok)
 			std::cout << "Неправильно введена дата!!!!";
 	}
@@ -616,11 +560,11 @@ Order inputOrder()
 	std::cin >> unit;
 	if (unit == "exit") throw "exit";
 	
-	priceForOne = inputInt("Введите стоимость единицы выполненной работы: ");
+	priceForOne = inputInt("Введите стоимость единицы выполненной работы: ", true);
 	
-	time = inputDate();
+	time = inputDate(true);
 	
-	volume = inputInt("Введите объем работ: ");
+	volume = inputInt("Введите объем работ: ", true);
 
 
 	return Order(name, type, unit, priceForOne, time, volume);
@@ -648,11 +592,11 @@ Order inputOrderAdd(Сontainer &c)
 	std::cout << "Введите единицу измерения: ";
 	std::cin >> unit;
 
-	priceForOne = inputInt("Введите стоимость единицы выполненной работы: ");
+	priceForOne = inputInt("Введите стоимость единицы выполненной работы: ", true);
 
-	time = inputDate();
+	time = inputDate(true);
 
-	volume = inputInt("Введите объем работ: ");
+	volume = inputInt("Введите объем работ: ", true);
 
 
 	return  Order(name, type,unit, priceForOne, time, volume);
@@ -684,7 +628,7 @@ void inputOrderChange(std::vector<Order>::iterator &it)
 	if (tmp != 0) it->priceForOne = tmp;
 
 	std::string curDate = it->time.to_string();
-	Date dt = inputDate("Введите дату по формату(mm:hh/dd/mm/yyyy)( сейчас: " + curDate + ")");
+	Date dt = inputDate(false, "Введите дату по формату(mm:hh dd/mm/yyyy)( сейчас: " + curDate + ")");
 	Date defDt = Date();
 	if (dt == defDt);
 	else it->time = dt;
